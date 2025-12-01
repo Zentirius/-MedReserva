@@ -8,7 +8,7 @@ router.get('/', async (req, res) => {
     let rows = [];
     try {
       const result = await db.query(
-        'SELECT id, nombre, precio_base, viajes_requeridos FROM examenes WHERE activo = true ORDER BY id ASC'
+        'SELECT id, slug, nombre, descripcion, categoria, precio_base, duracion_min, viajes_requeridos FROM examenes WHERE activo = true ORDER BY categoria NULLS LAST, nombre ASC'
       );
       rows = result.rows;
     } catch (errDb) {
