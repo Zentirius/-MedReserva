@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>MedReserva - Prototipo de Reservas</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div class="card">
+    <h1>Reservar toma de examen (Prototipo)</h1>
+
+    <label for="examen">Seleccione examen</label>
+    <select id="examen">
+      <option value='{"precio":30000,"viajes":1}'>Examen A - $30.000 (1 viaje)</option>
+      <option value='{"precio":45000,"viajes":2}'>Examen B - $45.000 (2 viajes)</option>
+      <option value='{"precio":70000,"viajes":4}'>Examen C - $70.000 (4 viajes)</option>
+    </select>
+
+    <div class="row">
+      <div class="col">
+        <label for="fecha">Fecha</label>
+        <input id="fecha" type="date" />
+      </div>
+      <div class="col small">
+        <label for="hora">Hora</label>
+        <input id="hora" type="time" />
+      </div>
+    </div>
+
+    <label for="nombre">Nombre del paciente</label>
+    <input id="nombre" type="text" placeholder="Nombre completo" />
+
+    <label for="telefono">Teléfono</label>
+    <input id="telefono" type="tel" placeholder="+56 9 ..." />
+
+    <label for="direccion">Dirección / Comuna</label>
+    <input id="direccion" type="text" placeholder="Calle 123, comuna" />
+
+    <div class="row">
+      <div class="col">
+        <label for="km">Distancia aproximada (km)</label>
+        <input id="km" type="number" min="0" step="0.1" value="0" />
+      </div>
+      <div class="col">
+        <label for="viajes">Número de viajes (por examen)</label>
+        <input id="viajes" type="number" min="1" step="1" value="1" />
+      </div>
+    </div>
+
+    <div class="summary" id="resumen">
+      <div>Precio base: <span id="precioBase">$0</span></div>
+      <div>Recargo por zona: <span id="recargo">$0</span></div>
+      <div style="font-weight:600">Total estimado: <span id="total">$0</span></div>
+      <div class="muted">Fórmula: recargo = km × 500 × viajes</div>
+    </div>
+
+    <div class="actions">
+      <button id="btn-calcular" type="button">Calcular</button>
+      <button id="btn-enviar" type="button">Enviar reserva (Google Forms / Backend)</button>
+    </div>
+
+    <div id="mensaje" class="muted" style="margin-top:12px"></div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>

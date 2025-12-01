@@ -1,0 +1,9 @@
+[build]
+  publish = "."
+  command = ""
+
+# Opcional: headers simples
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Frame-Options = "SAMEORIGIN"

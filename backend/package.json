@@ -1,0 +1,27 @@
+{
+  "name": "backend-reservas-express",
+  "version": "1.0.0",
+  "description": "Backend Express para MedReserva: reservas y logística médica a domicilio",
+  "main": "src/index.js",
+  "scripts": {
+    "start": "node src/index.js",
+    "dev": "nodemon src/index.js"
+  },
+  "keywords": [
+    "express",
+    "reservas",
+    "medicina",
+    "domicilio"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.0",
+    "express": "^4.19.0",
+    "pg": "^8.11.0"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.1"
+  }
+}

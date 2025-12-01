@@ -1,0 +1,23 @@
+const express = require('express');
+const { getDistanceKm } = require('../utils/geocode');
+
+const router = express.Router();
+
+router.get('/', async (req, res) => {
+  const direccion = req.query.direccion;
+  if (!direccion) {
+    return res.status(400).json({ error: 'Parámetro direccion es obligatorio' });
+  }
+
+  const origin = process.env.BASE_ADDRESS || 'Santiago, Chile';
+
+  try {
+    const km = await getDistanceKm({ origin, destination: direccion });
+    res.json({ km });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'No se pudo calcular la distancia' });
+  }
+});
+
+module.exports = router;
