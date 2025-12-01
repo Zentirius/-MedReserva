@@ -32,6 +32,44 @@ h1 {
   color: #6b7280;
 }
 
+.layout-row {
+  display: flex;
+  gap: 24px;
+  align-items: flex-start;
+}
+
+.layout-main {
+  flex: 1.6;
+}
+
+.layout-side {
+  flex: 1;
+  background: #f9fafb;
+  border-radius: 12px;
+  padding: 16px 14px;
+  border: 1px solid #e5e7eb;
+  font-size: 0.9rem;
+}
+
+.layout-side h2 {
+  margin-top: 0;
+  font-size: 1.05rem;
+}
+
+.layout-side h3 {
+  margin-top: 12px;
+  font-size: 0.95rem;
+}
+
+.steps-list {
+  padding-left: 18px;
+  margin: 8px 0 12px;
+}
+
+.steps-list li {
+  margin-bottom: 4px;
+}
+
 .logo-row {
   display: flex;
   justify-content: center;
@@ -136,6 +174,10 @@ button:active {
   }
 
   .row {
+    flex-direction: column;
+  }
+
+  .layout-row {
     flex-direction: column;
   }
 }

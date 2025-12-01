@@ -11,62 +11,79 @@
     <div class="logo-row">
       <img src="assets/logo.jpg" alt="Logo empresa" class="logo-img" />
     </div>
-    <h1>Reservar toma de examen a domicilio</h1>
-    <p class="subtitle">Agenda tus exámenes médicos de forma rápida, transparente y con cálculo automático por zona.</p>
+    <div class="layout-row">
+      <div class="layout-main">
+        <h1>Reservar toma de examen a domicilio</h1>
+        <p class="subtitle">Agenda tus exámenes médicos de forma rápida, transparente y con cálculo automático por zona.</p>
 
-    <label for="examen">Seleccione examen</label>
-    <select id="examen">
-      <option value='{"precio":30000,"viajes":1}'>Examen A - $30.000 (1 viaje)</option>
-      <option value='{"precio":45000,"viajes":2}'>Examen B - $45.000 (2 viajes)</option>
-      <option value='{"precio":70000,"viajes":4}'>Examen C - $70.000 (4 viajes)</option>
-    </select>
+        <label for="examen">Seleccione examen</label>
+        <select id="examen">
+          <option value='{"precio":30000,"viajes":1}'>Examen A - $30.000 (1 viaje)</option>
+          <option value='{"precio":45000,"viajes":2}'>Examen B - $45.000 (2 viajes)</option>
+          <option value='{"precio":70000,"viajes":4}'>Examen C - $70.000 (4 viajes)</option>
+        </select>
 
-    <div class="row">
-      <div class="col">
-        <label for="fecha">Fecha</label>
-        <input id="fecha" type="date" />
+        <div class="row">
+          <div class="col">
+            <label for="fecha">Fecha</label>
+            <input id="fecha" type="date" />
+          </div>
+          <div class="col small">
+            <label for="hora">Hora</label>
+            <input id="hora" type="time" />
+          </div>
+        </div>
+
+        <label for="nombre">Nombre del paciente</label>
+        <input id="nombre" type="text" placeholder="Nombre completo" />
+
+        <label for="telefono">Teléfono</label>
+        <input id="telefono" type="tel" placeholder="+56 9 ..." />
+
+        <label for="direccion">Dirección / Comuna</label>
+        <input id="direccion" type="text" placeholder="Calle 123, comuna" />
+
+        <div class="row">
+          <div class="col">
+            <label for="km">Distancia aproximada (km)</label>
+            <input id="km" type="number" min="0" step="0.1" value="0" />
+          </div>
+          <div class="col">
+            <label for="viajes">Número de viajes (por examen)</label>
+            <input id="viajes" type="number" min="1" step="1" value="1" />
+          </div>
+        </div>
+
+        <button id="btn-obtener-km" type="button">Calcular km según dirección (requiere backend)</button>
+
+        <div class="summary" id="resumen">
+          <div>Precio base: <span id="precioBase">$0</span></div>
+          <div>Recargo por zona: <span id="recargo">$0</span></div>
+          <div style="font-weight:600">Total estimado: <span id="total">$0</span></div>
+          <div class="muted">Fórmula: recargo = km × 500 × viajes</div>
+        </div>
+
+        <div class="actions">
+          <button id="btn-calcular" type="button">Calcular</button>
+          <button id="btn-enviar" type="button">Enviar reserva (Google Forms / Backend)</button>
+        </div>
+
+        <div id="mensaje" class="muted" style="margin-top:12px"></div>
       </div>
-      <div class="col small">
-        <label for="hora">Hora</label>
-        <input id="hora" type="time" />
-      </div>
+      <aside class="layout-side">
+        <h2>¿Cómo funciona?</h2>
+        <ol class="steps-list">
+          <li><strong>1.</strong> Elige el examen que necesitas.</li>
+          <li><strong>2.</strong> Indica tu dirección y la fecha/hora sugerida.</li>
+          <li><strong>3.</strong> Calcula el recargo según tu zona.</li>
+          <li><strong>4.</strong> Envía la reserva y nuestro equipo confirma por correo o WhatsApp.</li>
+        </ol>
+        <h3>Transparencia en el valor</h3>
+        <p>Mostramos el precio base del examen y el recargo estimado por distancia para que sepas exactamente cuánto vas a pagar.</p>
+        <h3>Atención a domicilio</h3>
+        <p>Nos desplazamos hasta tu domicilio con equipo certificado, evitando traslados innecesarios y esperas en centros médicos.</p>
+      </aside>
     </div>
-
-    <label for="nombre">Nombre del paciente</label>
-    <input id="nombre" type="text" placeholder="Nombre completo" />
-
-    <label for="telefono">Teléfono</label>
-    <input id="telefono" type="tel" placeholder="+56 9 ..." />
-
-    <label for="direccion">Dirección / Comuna</label>
-    <input id="direccion" type="text" placeholder="Calle 123, comuna" />
-
-    <div class="row">
-      <div class="col">
-        <label for="km">Distancia aproximada (km)</label>
-        <input id="km" type="number" min="0" step="0.1" value="0" />
-      </div>
-      <div class="col">
-        <label for="viajes">Número de viajes (por examen)</label>
-        <input id="viajes" type="number" min="1" step="1" value="1" />
-      </div>
-    </div>
-
-    <button id="btn-obtener-km" type="button">Calcular km según dirección (requiere backend)</button>
-
-    <div class="summary" id="resumen">
-      <div>Precio base: <span id="precioBase">$0</span></div>
-      <div>Recargo por zona: <span id="recargo">$0</span></div>
-      <div style="font-weight:600">Total estimado: <span id="total">$0</span></div>
-      <div class="muted">Fórmula: recargo = km × 500 × viajes</div>
-    </div>
-
-    <div class="actions">
-      <button id="btn-calcular" type="button">Calcular</button>
-      <button id="btn-enviar" type="button">Enviar reserva (Google Forms / Backend)</button>
-    </div>
-
-    <div id="mensaje" class="muted" style="margin-top:12px"></div>
   </div>
 
   <script src="app.js"></script>
