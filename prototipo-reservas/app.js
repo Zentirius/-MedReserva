@@ -10,6 +10,7 @@
 
   const btnCalcular = document.getElementById('btn-calcular');
   const btnEnviar = document.getElementById('btn-enviar');
+  const btnObtenerKm = document.getElementById('btn-obtener-km');
 
   function parseExamen() {
     try { return JSON.parse(examenEl.value); }
@@ -35,10 +36,42 @@
     return {precioBase, recargo, total, km, viajes: viajesInput};
   }
 
+  async function obtenerKmDesdeBackend() {
+    const direccion = document.getElementById('direccion').value.trim();
+    if (!direccion) {
+      mensajeEl.textContent = 'Ingresa una dirección antes de calcular la distancia.';
+      return;
+    }
+
+    mensajeEl.textContent = 'Calculando distancia...';
+    try {
+      const resp = await fetch(`/api/distancia?direccion=${encodeURIComponent(direccion)}`);
+      if (!resp.ok) {
+        throw new Error('No se pudo obtener la distancia (verificar backend)');
+      }
+      const data = await resp.json();
+      if (typeof data.km !== 'number') {
+        throw new Error('Respuesta de distancia inválida');
+      }
+      kmEl.value = data.km;
+      const res = calcular();
+      mensajeEl.textContent = `Distancia aproximada: ${data.km.toFixed(1)} km. Total estimado ${formatCLP(res.total)}.`;
+    } catch (err) {
+      console.error(err);
+      mensajeEl.textContent = `Error al calcular distancia: ${err.message || err}`;
+    }
+  }
+
   btnCalcular.addEventListener('click', () => {
     const res = calcular();
     mensajeEl.textContent = `Total estimado ${formatCLP(res.total)}. Presiona "Enviar reserva" para guardarla.`;
   });
+
+  if (btnObtenerKm) {
+    btnObtenerKm.addEventListener('click', () => {
+      obtenerKmDesdeBackend();
+    });
+  }
 
   // Envío a Google Forms: por simplicidad dejamos placeholders
   // 1) Crea un Google Form con los campos y copia el "form action" y "entry.xxxxx" para cada campo.
