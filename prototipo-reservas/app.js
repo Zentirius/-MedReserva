@@ -1,5 +1,6 @@
 // app.js - prototipo de cliente
 (function(){
+  const API_BASE = (window.__API_BASE__ && window.__API_BASE__) || 'http://localhost:3001';
   const examenEl = document.getElementById('examen');
   const kmEl = document.getElementById('km');
   const viajesEl = document.getElementById('viajes');
@@ -13,8 +14,11 @@
   const btnObtenerKm = document.getElementById('btn-obtener-km');
 
   function parseExamen() {
-    try { return JSON.parse(examenEl.value); }
-    catch(e){ return {precio:0, viajes:1}; }
+    const opt = examenEl && examenEl.selectedOptions && examenEl.selectedOptions[0];
+    if (!opt) return { id: null, precio: 0, viajes: 1 };
+    const precio = Number(opt.dataset && opt.dataset.precio ? opt.dataset.precio : 0);
+    const viajes = Number(opt.dataset && opt.dataset.viajes ? opt.dataset.viajes : 1);
+    return { id: opt.value || null, precio, viajes };
   }
 
   function formatCLP(n){
@@ -36,6 +40,36 @@
     return {precioBase, recargo, total, km, viajes: viajesInput};
   }
 
+  async function cargarExamenes(){
+    try {
+      const resp = await fetch(`${API_BASE}/api/examenes`);
+      if (!resp.ok) throw new Error('No se pudieron cargar los exámenes desde el backend');
+      const lista = await resp.json();
+      if (!Array.isArray(lista) || lista.length === 0) throw new Error('Lista de exámenes vacía');
+      examenEl.innerHTML = lista.map(e => `
+        <option value="${e.id}" data-precio="${e.precio_base}" data-viajes="${e.viajes_requeridos}">
+          ${e.nombre}
+        </option>
+      `).join('');
+      calcular();
+    } catch (err) {
+      console.error(err);
+      // fallback local
+      const local = [
+        { id: '1', nombre: 'Examen A', precio_base: 30000, viajes_requeridos: 1 },
+        { id: '2', nombre: 'Examen B', precio_base: 45000, viajes_requeridos: 2 },
+        { id: '3', nombre: 'Examen C', precio_base: 70000, viajes_requeridos: 4 }
+      ];
+      examenEl.innerHTML = local.map(e => `
+        <option value="${e.id}" data-precio="${e.precio_base}" data-viajes="${e.viajes_requeridos}">
+          ${e.nombre}
+        </option>
+      `).join('');
+      mensajeEl.textContent = 'Usando lista local de exámenes. Configurar backend para datos reales.';
+      calcular();
+    }
+  }
+
   async function obtenerKmDesdeBackend() {
     const direccion = document.getElementById('direccion').value.trim();
     if (!direccion) {
@@ -45,7 +79,7 @@
 
     mensajeEl.textContent = 'Calculando distancia...';
     try {
-      const resp = await fetch(`/api/distancia?direccion=${encodeURIComponent(direccion)}`);
+      const resp = await fetch(`${API_BASE}/api/distancia?direccion=${encodeURIComponent(direccion)}`);
       if (!resp.ok) {
         throw new Error('No se pudo obtener la distancia (verificar backend)');
       }
@@ -92,7 +126,7 @@
 
   // Envío a backend (recomendado): apunta a un endpoint tuyo que procese y guarde en Airtable/Supabase.
   async function enviarABackend(jsonPayload) {
-    const ENDPOINT = '/api/reservas'; // en producción reemplazar por /api/reservas en el dominio de la función
+    const ENDPOINT = `${API_BASE}/api/reservas`;
     const resp = await fetch(ENDPOINT, {
       method:'POST',
       headers:{'Content-Type':'application/json'},
@@ -106,23 +140,38 @@
     mensajeEl.textContent = 'Procesando...';
     try {
       const resCalc = calcular();
+      const examParsed = parseExamen();
       const payload = {
-        examen: document.querySelector('#examen').selectedOptions[0].text,
+        examen_id: examParsed.id,
+        nombre: document.getElementById('nombre').value,
+        telefono: document.getElementById('telefono').value,
+        direccion: document.getElementById('direccion').value,
+        comuna: '',
         fecha: document.getElementById('fecha').value,
         hora: document.getElementById('hora').value,
         nombre: document.getElementById('nombre').value,
         telefono: document.getElementById('telefono').value,
         direccion: document.getElementById('direccion').value,
         km: resCalc.km,
-        viajes: resCalc.viajes,
-        precioBase: resCalc.precioBase,
-        recargo: resCalc.recargo,
-        total: resCalc.total,
+        num_viajes: resCalc.viajes,
+        notas: ''
+      };
+
+      // Enviar a backend (recomendado)
+      const respuestaBackend = await enviarABackend(payload);
+
+      // Guardar también la última reserva localmente como respaldo
+      const resumenLocal = {
+        ...payload,
+        backend_id: respuestaBackend && respuestaBackend.id,
+        total_calculado: respuestaBackend && typeof respuestaBackend.total === 'number'
+          ? respuestaBackend.total
+          : resCalc.total,
         creadoEn: new Date().toISOString()
       };
 
-      // Opción 1: enviar a backend (recomendado cuando exista)
-      // await enviarABackend(payload);
+      localStorage.setItem('ultimaReserva', JSON.stringify(resumenLocal));
+      mensajeEl.innerHTML = `<span class="success">Reserva enviada. ID: ${respuestaBackend && respuestaBackend.id ? respuestaBackend.id : 'pendiente'}. Total estimado: ${formatCLP(resumenLocal.total_calculado)}.</span>`;
 
       // Opción 2: enviar a Google Forms (descomentar cuando tengas action)
       // const formPayload = {
@@ -135,15 +184,23 @@
       // };
       // await enviarAGoogleForms(formPayload);
 
-      // temporal: guardarlo localmente como prueba
-      localStorage.setItem('ultimaReserva', JSON.stringify(payload));
-      mensajeEl.innerHTML = '<span class="success">Reserva guardada en demo (local). Implementar backend o Google Form para persistencia real.</span>';
+      // si falla el backend, intentamos guardar al menos en localStorage
+      const fallback = {
+        error: true,
+        mensaje: err.message || String(err),
+        payloadUltimoIntento: {
+          ...payload,
+          creadoEn: new Date().toISOString()
+        }
+      };
+      localStorage.setItem('ultimaReservaError', JSON.stringify(fallback));
+      mensajeEl.innerHTML = '<span class="error">Error al enviar la reserva. Se ha guardado un respaldo local; contactar al equipo para confirmar.</span>';
     } catch (err) {
       console.error(err);
       mensajeEl.innerHTML = '<span class="error">Error: '+ (err.message || err) +'</span>';
     }
   });
 
-  // calcular onload
-  calcular();
+  // cargar exámenes y calcular onload
+  cargarExamenes();
 })();
