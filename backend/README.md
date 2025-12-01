@@ -27,6 +27,10 @@ El servidor quedara escuchando en `http://localhost:3001` (o el puerto definido 
 - `SENDGRID_API_KEY`: (opcional) API key para envio de correos.
 - `GOOGLE_MAPS_API_KEY`: (opcional) API key para calculo de distancia.
 - `CORS_ORIGIN`: lista de origenes permitidos (separados por coma).
+- `JWT_SECRET`: secreto usado para firmar los JWT (access y refresh tokens).
+- `JWT_EXPIRES_IN`: duracion del access token (ejemplo: `15m`).
+- `JWT_REFRESH_EXPIRES_IN`: duracion del refresh token (ejemplo: `7d`).
+- `NODE_ENV`: `development` o `production`. Se usa, por ejemplo, para marcar las cookies como `secure` en produccion.
 
 ## Endpoints
 

@@ -74,7 +74,7 @@ Backend en Node 18+, Express y PostgreSQL 14+.
 cd backend
 npm install
 cp .env.example .env
-# Editar .env y completar DATABASE_URL, PORT, CORS_ORIGIN, etc.
+# Editar .env y completar DATABASE_URL, PORT, CORS_ORIGIN, JWT_SECRET, JWT_EXPIRES_IN, etc.
 psql -d medreserva -f migrations/schema.sql
 npm start
 ```
@@ -160,3 +160,13 @@ En `prototipo-reservas/index.html` se declara:
 En local, si `window.__API_BASE__` no esta definido, el frontend usa por defecto `http://localhost:3001`.
 
 En produccion, basta con editar ese valor para apuntar al dominio real del backend (por ejemplo, Railway/Render/Fly.io). De esta forma se evita usar `localhost` en Vercel y el prototipo puede consumir `/api/examenes`, `/api/distancia` y `/api/reservas` desde el servidor correcto.
+
+### 6. Integracion continua (CI)
+
+Este repositorio incluye un workflow de GitHub Actions en `.github/workflows/ci.yml` que:
+
+- Instala las dependencias del backend (`npm install` dentro de `backend/`).
+- Ejecuta `npm test` (si no hay tests definidos, el comando no rompe el pipeline).
+- Ejecuta CodeQL para analisis estatico de seguridad sobre el codigo JavaScript del backend.
+
+Al subir el proyecto a GitHub y habilitar Code scanning / CodeQL en **Settings → Security & analysis**, los PRs y commits quedaran respaldados por estos chequeos automaticos.
