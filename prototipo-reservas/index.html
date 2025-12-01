@@ -3,93 +3,164 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>MedReserva - Prototipo de Reservas</title>
+  <title>MedReserva - Reserva de Exámenes a Domicilio</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
-  <div class="card">
-    <div class="logo-row">
-      <img src="assets/logo.jpg" alt="Logo empresa" class="logo-img" />
-    </div>
-    <div class="layout-row">
-      <div class="layout-main">
-        <h1>Reservar toma de examen a domicilio</h1>
-        <p class="subtitle">Agenda tus exámenes médicos de forma rápida, transparente y con cálculo automático por zona.</p>
-
-        <label for="examen">Seleccione examen</label>
-        <select id="examen">
-          <option value="">Cargando exámenes...</option>
-        </select>
-
-        <div class="row">
-          <div class="col">
-            <label for="fecha">Fecha</label>
-            <input id="fecha" type="date" />
-          </div>
-          <div class="col small">
-            <label for="hora">Hora</label>
-            <input id="hora" type="time" />
-          </div>
-        </div>
-
-        <label for="nombre">Nombre del paciente</label>
-        <input id="nombre" type="text" placeholder="Nombre completo" />
-
-        <label for="telefono">Teléfono</label>
-        <input id="telefono" type="tel" placeholder="+56 9 ..." />
-
-        <label for="direccion">Dirección / Comuna</label>
-        <input id="direccion" type="text" placeholder="Calle 123, comuna" />
-
-        <div class="row">
-          <div class="col">
-            <label for="km">Distancia aproximada (km)</label>
-            <input id="km" type="number" min="0" step="0.1" value="0" />
-          </div>
-          <div class="col">
-            <label for="viajes">Número de viajes (por examen)</label>
-            <input id="viajes" type="number" min="1" step="1" value="1" />
-          </div>
-        </div>
-
-        <button id="btn-obtener-km" type="button">Calcular km según dirección (requiere backend)</button>
-
-        <div class="summary" id="resumen">
-          <div>Precio base: <span id="precioBase">$0</span></div>
-          <div>Recargo por zona: <span id="recargo">$0</span></div>
-          <div style="font-weight:600">Total estimado: <span id="total">$0</span></div>
-          <div class="muted">Fórmula: recargo = km × 500 × viajes</div>
-        </div>
-
-        <div class="actions">
-          <button id="btn-calcular" type="button">Calcular</button>
-          <button id="btn-enviar" type="button">Enviar reserva (Google Forms / Backend)</button>
-        </div>
-
-        <div id="mensaje" class="muted" style="margin-top:12px"></div>
+  <header class="header">
+    <div class="header-content">
+      <img src="assets/logo.jpg" alt="MedReserva" class="header-logo" />
+      <div class="header-text">
+        <h1>MedReserva</h1>
+        <p>Exámenes médicos a domicilio</p>
       </div>
-      <aside class="layout-side">
-        <h2>¿Cómo funciona?</h2>
-        <ol class="steps-list">
-          <li><strong>1.</strong> Elige el examen que necesitas.</li>
-          <li><strong>2.</strong> Indica tu dirección y la fecha/hora sugerida.</li>
-          <li><strong>3.</strong> Calcula el recargo según tu zona.</li>
-          <li><strong>4.</strong> Envía la reserva y nuestro equipo confirma por correo o WhatsApp.</li>
-        </ol>
-        <h3>Transparencia en el valor</h3>
-        <p>Mostramos el precio base del examen y el recargo estimado por distancia para que sepas exactamente cuánto vas a pagar.</p>
-        <h3>Atención a domicilio</h3>
-        <p>Nos desplazamos hasta tu domicilio con equipo certificado, evitando traslados innecesarios y esperas en centros médicos.</p>
-      </aside>
     </div>
-  </div>
+  </header>
+
+  <main class="main-container">
+    <div class="card form-card">
+      <div class="card-header">
+        <h2>Reservar examen a domicilio</h2>
+        <p>Complete el formulario y nuestro equipo confirmará su cita</p>
+      </div>
+
+      <form id="reserva-form" class="form-body">
+        <div class="form-section">
+          <h3>Tipo de examen</h3>
+          <div class="form-group">
+            <label for="examen">Seleccione el examen</label>
+            <select id="examen" required>
+              <option value="">Cargando exámenes...</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-section">
+          <h3>Fecha y hora</h3>
+          <div class="form-row">
+            <div class="form-group">
+              <label for="fecha">Fecha preferida</label>
+              <input id="fecha" type="date" required />
+            </div>
+            <div class="form-group">
+              <label for="hora">Hora preferida</label>
+              <input id="hora" type="time" required />
+            </div>
+          </div>
+        </div>
+
+        <div class="form-section">
+          <h3>Datos del paciente</h3>
+          <div class="form-group">
+            <label for="nombre">Nombre completo</label>
+            <input id="nombre" type="text" placeholder="Ej: Juan Pérez González" required />
+          </div>
+          <div class="form-group">
+            <label for="telefono">Teléfono de contacto</label>
+            <input id="telefono" type="tel" placeholder="+56 9 1234 5678" required />
+          </div>
+        </div>
+
+        <div class="form-section">
+          <h3>Dirección de atención</h3>
+          <div class="form-group">
+            <label for="direccion">Dirección completa</label>
+            <input id="direccion" type="text" placeholder="Ej: Av. Providencia 1234, Depto 56, Providencia" required />
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label for="km">Distancia (km)</label>
+              <input id="km" type="number" min="0" step="0.1" value="0" />
+            </div>
+            <div class="form-group">
+              <label for="viajes">Nº de visitas</label>
+              <input id="viajes" type="number" min="1" step="1" value="1" readonly />
+            </div>
+          </div>
+          <button id="btn-obtener-km" type="button" class="btn-secondary">
+            <span class="btn-icon">📍</span> Calcular distancia automáticamente
+          </button>
+        </div>
+
+        <div class="summary-card">
+          <h3>Resumen de costos</h3>
+          <div class="summary-row">
+            <span>Precio base del examen</span>
+            <span id="precioBase" class="price">$0</span>
+          </div>
+          <div class="summary-row">
+            <span>Recargo por distancia</span>
+            <span id="recargo" class="price">$0</span>
+          </div>
+          <div class="summary-row total">
+            <span>Total estimado</span>
+            <span id="total" class="price">$0</span>
+          </div>
+          <p class="summary-note">Recargo = distancia × $500 × visitas requeridas</p>
+        </div>
+
+        <div class="form-actions">
+          <button id="btn-calcular" type="button" class="btn-outline">Recalcular precio</button>
+          <button id="btn-enviar" type="submit" class="btn-primary">Confirmar reserva</button>
+        </div>
+
+        <div id="mensaje" class="message"></div>
+      </form>
+    </div>
+
+    <aside class="info-card">
+      <div class="info-section">
+        <h3>¿Cómo funciona?</h3>
+        <ol class="steps-list">
+          <li>
+            <span class="step-num">1</span>
+            <span>Seleccione el examen que necesita</span>
+          </li>
+          <li>
+            <span class="step-num">2</span>
+            <span>Ingrese su dirección y datos de contacto</span>
+          </li>
+          <li>
+            <span class="step-num">3</span>
+            <span>Confirme su reserva</span>
+          </li>
+          <li>
+            <span class="step-num">4</span>
+            <span>Reciba confirmación por WhatsApp o correo</span>
+          </li>
+        </ol>
+      </div>
+
+      <div class="info-section">
+        <h3>Transparencia en precios</h3>
+        <p>Mostramos el precio base y el recargo por distancia antes de confirmar, sin sorpresas.</p>
+      </div>
+
+      <div class="info-section">
+        <h3>Atención profesional</h3>
+        <p>Tecnólogos médicos certificados se desplazan a su domicilio con equipamiento profesional.</p>
+      </div>
+
+      <div class="info-section contact">
+        <h3>¿Dudas?</h3>
+        <p>Contáctenos por WhatsApp</p>
+        <a href="https://wa.me/56900000000" class="whatsapp-btn" target="_blank">
+          💬 Escribir por WhatsApp
+        </a>
+      </div>
+    </aside>
+  </main>
+
+  <footer class="footer">
+    <p>© 2025 MedReserva · Exámenes médicos a domicilio</p>
+  </footer>
 
   <script>
-    // En producción, reemplazar esta URL por la del backend desplegado
-    // por ejemplo: 'https://api.medreserva.cl'
     window.__API_BASE__ = 'https://medreserva-production.up.railway.app';
   </script>
   <script src="app.js"></script>
 </body>
 </html>
-<em></em>

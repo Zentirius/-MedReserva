@@ -1,6 +1,11 @@
-// app.js - prototipo de cliente
-(function(){
-  const API_BASE = (window.__API_BASE__ && window.__API_BASE__) || 'http://localhost:3001';
+// app.js - MedReserva Cliente
+(function() {
+  'use strict';
+
+  // ===== Configuración =====
+  const API_BASE = window.__API_BASE__ || 'http://localhost:3001';
+
+  // ===== Elementos del DOM =====
   const examenEl = document.getElementById('examen');
   const kmEl = document.getElementById('km');
   const viajesEl = document.getElementById('viajes');
@@ -8,199 +13,242 @@
   const recargoEl = document.getElementById('recargo');
   const totalEl = document.getElementById('total');
   const mensajeEl = document.getElementById('mensaje');
-
+  const formEl = document.getElementById('reserva-form');
   const btnCalcular = document.getElementById('btn-calcular');
-  const btnEnviar = document.getElementById('btn-enviar');
   const btnObtenerKm = document.getElementById('btn-obtener-km');
 
+  // ===== Utilidades =====
+  function formatCLP(n) {
+    if (n === null || n === undefined) return '$0';
+    return n.toLocaleString('es-CL', { style: 'currency', currency: 'CLP' });
+  }
+
+  function mostrarMensaje(texto, tipo = 'info') {
+    if (!mensajeEl) return;
+    const clases = { success: 'success', error: 'error', info: 'loading' };
+    mensajeEl.innerHTML = `<span class="${clases[tipo] || ''}">${texto}</span>`;
+  }
+
+  function limpiarMensaje() {
+    if (mensajeEl) mensajeEl.innerHTML = '';
+  }
+
+  // ===== Lógica de exámenes =====
   function parseExamen() {
-    const opt = examenEl && examenEl.selectedOptions && examenEl.selectedOptions[0];
-    if (!opt) return { id: null, precio: 0, viajes: 1 };
-    const precio = Number(opt.dataset && opt.dataset.precio ? opt.dataset.precio : 0);
-    const viajes = Number(opt.dataset && opt.dataset.viajes ? opt.dataset.viajes : 1);
-    return { id: opt.value || null, precio, viajes };
+    const opt = examenEl?.selectedOptions?.[0];
+    if (!opt || !opt.value) return { id: null, precio: 0, viajes: 1 };
+    return {
+      id: opt.value,
+      precio: Number(opt.dataset?.precio) || 0,
+      viajes: Number(opt.dataset?.viajes) || 1
+    };
   }
 
-  function formatCLP(n){
-    return n === null || n===undefined ? '$0' : n.toLocaleString('es-CL', {style:'currency',currency:'CLP'});
-  }
-
-  function calcular(){
+  function calcular() {
     const exam = parseExamen();
-    const km = Math.max(0, parseFloat(kmEl.value) || 0);
-    // si el campo viajes local difiere, preferir input viajes
-    const viajesInput = Math.max(1, parseInt(viajesEl.value) || exam.viajes || 1);
-    const precioBase = Number(exam.precio || 0);
-    const recargo = Math.round(km * 500 * viajesInput);
+    const km = Math.max(0, parseFloat(kmEl?.value) || 0);
+    const viajes = exam.viajes || 1;
+    const precioBase = exam.precio || 0;
+    const recargo = Math.round(km * 500 * viajes);
     const total = precioBase + recargo;
-    // actualizar UI
-    precioBaseEl.textContent = formatCLP(precioBase);
-    recargoEl.textContent = formatCLP(recargo);
-    totalEl.textContent = formatCLP(total);
-    return {precioBase, recargo, total, km, viajes: viajesInput};
+
+    // Actualizar campo de viajes (readonly)
+    if (viajesEl) viajesEl.value = viajes;
+
+    // Actualizar UI de resumen
+    if (precioBaseEl) precioBaseEl.textContent = formatCLP(precioBase);
+    if (recargoEl) recargoEl.textContent = formatCLP(recargo);
+    if (totalEl) totalEl.textContent = formatCLP(total);
+
+    return { precioBase, recargo, total, km, viajes };
   }
 
-  async function cargarExamenes(){
+  async function cargarExamenes() {
     try {
       const resp = await fetch(`${API_BASE}/api/examenes`);
-      if (!resp.ok) throw new Error('No se pudieron cargar los exámenes desde el backend');
+      if (!resp.ok) throw new Error('Error de conexión');
+      
       const lista = await resp.json();
-      if (!Array.isArray(lista) || lista.length === 0) throw new Error('Lista de exámenes vacía');
-      examenEl.innerHTML = lista.map(e => `
-        <option value="${e.id}" data-precio="${e.precio_base}" data-viajes="${e.viajes_requeridos}">
-          ${e.nombre}
-        </option>
-      `).join('');
+      if (!Array.isArray(lista) || lista.length === 0) {
+        throw new Error('Sin exámenes');
+      }
+
+      examenEl.innerHTML = '<option value="">Seleccione un examen...</option>' +
+        lista.map(e => `
+          <option value="${e.id}" data-precio="${e.precio_base}" data-viajes="${e.viajes_requeridos}">
+            ${e.nombre} - ${formatCLP(e.precio_base)}
+          </option>
+        `).join('');
+
       calcular();
     } catch (err) {
-      console.error(err);
-      // fallback local
-      const local = [
+      console.warn('Usando exámenes de respaldo:', err.message);
+      
+      const fallback = [
         { id: '1', nombre: 'Examen A', precio_base: 30000, viajes_requeridos: 1 },
         { id: '2', nombre: 'Examen B', precio_base: 45000, viajes_requeridos: 2 },
         { id: '3', nombre: 'Examen C', precio_base: 70000, viajes_requeridos: 4 }
       ];
-      examenEl.innerHTML = local.map(e => `
-        <option value="${e.id}" data-precio="${e.precio_base}" data-viajes="${e.viajes_requeridos}">
-          ${e.nombre}
-        </option>
-      `).join('');
-      mensajeEl.textContent = 'Usando lista local de exámenes. Configurar backend para datos reales.';
+
+      examenEl.innerHTML = '<option value="">Seleccione un examen...</option>' +
+        fallback.map(e => `
+          <option value="${e.id}" data-precio="${e.precio_base}" data-viajes="${e.viajes_requeridos}">
+            ${e.nombre} - ${formatCLP(e.precio_base)}
+          </option>
+        `).join('');
+
+      mostrarMensaje('⚠️ Modo demo: usando lista local de exámenes', 'info');
       calcular();
     }
   }
 
+  // ===== Cálculo de distancia =====
   async function obtenerKmDesdeBackend() {
-    const direccion = document.getElementById('direccion').value.trim();
+    const direccion = document.getElementById('direccion')?.value?.trim();
     if (!direccion) {
-      mensajeEl.textContent = 'Ingresa una dirección antes de calcular la distancia.';
+      mostrarMensaje('Ingrese una dirección para calcular la distancia', 'error');
       return;
     }
 
-    mensajeEl.textContent = 'Calculando distancia...';
+    mostrarMensaje('📍 Calculando distancia...', 'info');
+
     try {
       const resp = await fetch(`${API_BASE}/api/distancia?direccion=${encodeURIComponent(direccion)}`);
-      if (!resp.ok) {
-        throw new Error('No se pudo obtener la distancia (verificar backend)');
-      }
+      if (!resp.ok) throw new Error('Servicio no disponible');
+
       const data = await resp.json();
-      if (typeof data.km !== 'number') {
-        throw new Error('Respuesta de distancia inválida');
-      }
-      kmEl.value = data.km;
+      if (typeof data.km !== 'number') throw new Error('Respuesta inválida');
+
+      kmEl.value = data.km.toFixed(1);
       const res = calcular();
-      mensajeEl.textContent = `Distancia aproximada: ${data.km.toFixed(1)} km. Total estimado ${formatCLP(res.total)}.`;
+      mostrarMensaje(`✓ Distancia: ${data.km.toFixed(1)} km · Total: ${formatCLP(res.total)}`, 'success');
     } catch (err) {
-      console.error(err);
-      mensajeEl.textContent = `Error al calcular distancia: ${err.message || err}`;
+      console.error('Error distancia:', err);
+      mostrarMensaje('No se pudo calcular la distancia. Ingrese el valor manualmente.', 'error');
     }
   }
 
-  btnCalcular.addEventListener('click', () => {
-    const res = calcular();
-    mensajeEl.textContent = `Total estimado ${formatCLP(res.total)}. Presiona "Enviar reserva" para guardarla.`;
-  });
-
-  if (btnObtenerKm) {
-    btnObtenerKm.addEventListener('click', () => {
-      obtenerKmDesdeBackend();
-    });
-  }
-
-  // Envío a Google Forms: por simplicidad dejamos placeholders
-  // 1) Crea un Google Form con los campos y copia el "form action" y "entry.xxxxx" para cada campo.
-  // 2) Reemplaza GOOGLE_FORM_ACTION y los nombres en payload below.
-  async function enviarAGoogleForms(formDataPayload) {
-    const GOOGLE_FORM_ACTION = 'REEMPLAZAR_CON_GOOGLE_FORM_ACTION_URL';
-    if (GOOGLE_FORM_ACTION.includes('REEMPLAZAR')) {
-      throw new Error('Debes configurar la URL del Google Form en app.js antes de usar envío directo.');
-    }
-    const form = new URLSearchParams(formDataPayload);
-    const resp = await fetch(GOOGLE_FORM_ACTION, {
+  // ===== Envío de reserva =====
+  async function enviarReserva(payload) {
+    const resp = await fetch(`${API_BASE}/api/reservas`, {
       method: 'POST',
-      body: form,
-      mode: 'no-cors'
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
     });
-    return resp;
-  }
-
-  // Envío a backend (recomendado): apunta a un endpoint tuyo que procese y guarde en Airtable/Supabase.
-  async function enviarABackend(jsonPayload) {
-    const ENDPOINT = `${API_BASE}/api/reservas`;
-    const resp = await fetch(ENDPOINT, {
-      method:'POST',
-      headers:{'Content-Type':'application/json'},
-      body: JSON.stringify(jsonPayload)
-    });
-    if (!resp.ok) throw new Error('Error al enviar a backend: ' + resp.status);
+    if (!resp.ok) {
+      const errorData = await resp.json().catch(() => ({}));
+      throw new Error(errorData.error || `Error ${resp.status}`);
+    }
     return resp.json();
   }
 
-  btnEnviar.addEventListener('click', async () => {
-    mensajeEl.textContent = 'Procesando...';
-    try {
-      const resCalc = calcular();
-      const examParsed = parseExamen();
-      const payload = {
-        examen_id: examParsed.id,
-        nombre: document.getElementById('nombre').value,
-        telefono: document.getElementById('telefono').value,
-        direccion: document.getElementById('direccion').value,
-        comuna: '',
-        fecha: document.getElementById('fecha').value,
-        hora: document.getElementById('hora').value,
-        nombre: document.getElementById('nombre').value,
-        telefono: document.getElementById('telefono').value,
-        direccion: document.getElementById('direccion').value,
-        km: resCalc.km,
-        num_viajes: resCalc.viajes,
-        notas: ''
-      };
-
-      // Enviar a backend (recomendado)
-      const respuestaBackend = await enviarABackend(payload);
-
-      // Guardar también la última reserva localmente como respaldo
-      const resumenLocal = {
-        ...payload,
-        backend_id: respuestaBackend && respuestaBackend.id,
-        total_calculado: respuestaBackend && typeof respuestaBackend.total === 'number'
-          ? respuestaBackend.total
-          : resCalc.total,
-        creadoEn: new Date().toISOString()
-      };
-
-      localStorage.setItem('ultimaReserva', JSON.stringify(resumenLocal));
-      mensajeEl.innerHTML = `<span class="success">Reserva enviada. ID: ${respuestaBackend && respuestaBackend.id ? respuestaBackend.id : 'pendiente'}. Total estimado: ${formatCLP(resumenLocal.total_calculado)}.</span>`;
-
-      // Opción 2: enviar a Google Forms (descomentar cuando tengas action)
-      // const formPayload = {
-      //   'entry.123456': payload.nombre,
-      //   'entry.234567': payload.telefono,
-      //   'entry.345678': payload.direccion,
-      //   'entry.456789': payload.examen,
-      //   'entry.567890': payload.fecha + ' ' + payload.hora,
-      //   'entry.678901': payload.total
-      // };
-      // await enviarAGoogleForms(formPayload);
-
-      // si falla el backend, intentamos guardar al menos en localStorage
-      const fallback = {
-        error: true,
-        mensaje: err.message || String(err),
-        payloadUltimoIntento: {
-          ...payload,
-          creadoEn: new Date().toISOString()
-        }
-      };
-      localStorage.setItem('ultimaReservaError', JSON.stringify(fallback));
-      mensajeEl.innerHTML = '<span class="error">Error al enviar la reserva. Se ha guardado un respaldo local; contactar al equipo para confirmar.</span>';
-    } catch (err) {
-      console.error(err);
-      mensajeEl.innerHTML = '<span class="error">Error: '+ (err.message || err) +'</span>';
+  async function handleSubmit(e) {
+    e.preventDefault();
+    
+    const exam = parseExamen();
+    if (!exam.id) {
+      mostrarMensaje('Seleccione un examen', 'error');
+      return;
     }
-  });
 
-  // cargar exámenes y calcular onload
+    const nombre = document.getElementById('nombre')?.value?.trim();
+    const telefono = document.getElementById('telefono')?.value?.trim();
+    const direccion = document.getElementById('direccion')?.value?.trim();
+    const fecha = document.getElementById('fecha')?.value;
+    const hora = document.getElementById('hora')?.value;
+
+    if (!nombre || !telefono || !direccion || !fecha || !hora) {
+      mostrarMensaje('Complete todos los campos obligatorios', 'error');
+      return;
+    }
+
+    mostrarMensaje('Enviando reserva...', 'info');
+
+    const resCalc = calcular();
+    const payload = {
+      examen_id: exam.id,
+      nombre,
+      telefono,
+      direccion,
+      comuna: '',
+      fecha,
+      hora,
+      km: resCalc.km,
+      num_viajes: resCalc.viajes,
+      notas: ''
+    };
+
+    try {
+      const respuesta = await enviarReserva(payload);
+
+      // Guardar respaldo local
+      localStorage.setItem('ultimaReserva', JSON.stringify({
+        ...payload,
+        backend_id: respuesta?.id,
+        total: respuesta?.total || resCalc.total,
+        timestamp: new Date().toISOString()
+      }));
+
+      const idTexto = respuesta?.id ? `#${respuesta.id}` : '';
+      const totalTexto = formatCLP(respuesta?.total || resCalc.total);
+      
+      mostrarMensaje(
+        `✓ ¡Reserva confirmada! ${idTexto}<br>Total: ${totalTexto}<br>Le contactaremos para confirmar la cita.`,
+        'success'
+      );
+
+      // Limpiar formulario
+      formEl?.reset();
+      calcular();
+
+    } catch (err) {
+      console.error('Error reserva:', err);
+      
+      // Guardar intento fallido
+      localStorage.setItem('reservaFallida', JSON.stringify({
+        payload,
+        error: err.message,
+        timestamp: new Date().toISOString()
+      }));
+
+      mostrarMensaje(
+        `Error al enviar: ${err.message}. Intente nuevamente o contáctenos por WhatsApp.`,
+        'error'
+      );
+    }
+  }
+
+  // ===== Event Listeners =====
+  if (examenEl) {
+    examenEl.addEventListener('change', calcular);
+  }
+
+  if (kmEl) {
+    kmEl.addEventListener('input', calcular);
+  }
+
+  if (btnCalcular) {
+    btnCalcular.addEventListener('click', () => {
+      const res = calcular();
+      mostrarMensaje(`Total estimado: ${formatCLP(res.total)}`, 'info');
+    });
+  }
+
+  if (btnObtenerKm) {
+    btnObtenerKm.addEventListener('click', obtenerKmDesdeBackend);
+  }
+
+  if (formEl) {
+    formEl.addEventListener('submit', handleSubmit);
+  }
+
+  // ===== Inicialización =====
   cargarExamenes();
+
+  // Setear fecha mínima como hoy
+  const fechaInput = document.getElementById('fecha');
+  if (fechaInput) {
+    const hoy = new Date().toISOString().split('T')[0];
+    fechaInput.setAttribute('min', hoy);
+  }
 })();
