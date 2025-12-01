@@ -2,6 +2,26 @@
 
 Este repositorio contiene el frontend de prototipo y el backend Express para gestionar reservas de examenes a domicilio.
 
+## Contexto e independencia de Setmore
+
+MedReserva es una **solucion propia** de reservas y logistica medica a domicilio.
+
+Setmore (por ejemplo `https://movilsalud.setmore.com/`) se usa solo como **referencia** para entender:
+
+- Que tipos de examenes ofrece hoy el cliente.
+- Como es el flujo actual de agendamiento.
+
+Nada de la logica de Setmore se integra directamente en este proyecto:
+
+- No se llama a la API de Setmore desde el frontend ni desde el backend.
+- No se usan widgets de Setmore dentro de MedReserva.
+
+El objetivo es tener:
+
+- Backend propio con examenes (Express + PostgreSQL).
+- Calculo de distancia y recargo por zona usando Google Maps Distance Matrix desde el backend.
+- Tabla de reservas y, mas adelante, integracion de pagos.
+
 ## Estructura del proyecto
 
 - `index.html` (raiz): redirige al prototipo de reservas.
@@ -85,6 +105,22 @@ Por defecto el servidor escucha en `http://localhost:3001`.
 - `GET /api/distancia?direccion=...`  
   Calcula la distancia (km) usando Google Distance Matrix (requiere `GOOGLE_MAPS_API_KEY`).
 
+### 2.1. Configuracion de Google Maps
+
+El backend usa `GOOGLE_MAPS_API_KEY` para consultar la API de Distance Matrix de Google y asi calcular la distancia entre una direccion base (`BASE_ADDRESS`) y la direccion del paciente.
+
+Recomendaciones:
+
+- Definir `GOOGLE_MAPS_API_KEY` y `BASE_ADDRESS` en el `.env` del backend o en las variables de entorno del proveedor de hosting.
+- Restringir siempre la key por dominio/IP y por APIs permitidas.
+
+Ejemplo en `.env`:
+
+```env
+GOOGLE_MAPS_API_KEY=tu_key_de_google
+BASE_ADDRESS="Clinica Ejemplo, Santiago, Chile"
+```
+
 ### 3. Arquitectura
 
 ```texto
@@ -106,3 +142,21 @@ La logica de negocio sensible (calculo de costo por zona, uso de API keys, integ
 - No exponer claves ni tokens en `index.html` ni en `app.js`.
 - Guardar claves en variables de entorno (`.env`) o en el panel del proveedor (Vercel, Render, Railway, etc.).
 - Si alguna key estuvo en un repositorio publico, revocarla y regenerarla.
+
+### 5. Configuracion de API_BASE en produccion
+
+El frontend del prototipo se comunica con el backend a traves de la variable global `window.__API_BASE__`.
+
+En `prototipo-reservas/index.html` se declara:
+
+```html
+<script>
+  // En produccion, reemplazar esta URL por la del backend desplegado
+  // por ejemplo: 'https://api.medreserva.cl'
+  window.__API_BASE__ = 'REEMPLAZAR_CON_URL_BACKEND';
+  </script>
+```
+
+En local, si `window.__API_BASE__` no esta definido, el frontend usa por defecto `http://localhost:3001`.
+
+En produccion, basta con editar ese valor para apuntar al dominio real del backend (por ejemplo, Railway/Render/Fly.io). De esta forma se evita usar `localhost` en Vercel y el prototipo puede consumir `/api/examenes`, `/api/distancia` y `/api/reservas` desde el servidor correcto.
