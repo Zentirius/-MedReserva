@@ -15,8 +15,8 @@ router.get('/', async (req, res) => {
     const km = await getDistanceKm({ origin, destination: direccion });
     res.json({ km });
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: 'No se pudo calcular la distancia' });
+    console.error('Error calculando distancia:', err);
+    res.status(500).json({ error: 'No se pudo calcular la distancia', detalle: err.message || 'Error desconocido' });
   }
 });
 
