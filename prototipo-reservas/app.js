@@ -17,6 +17,58 @@
   const btnCalcular = document.getElementById('btn-calcular');
   const btnObtenerKm = document.getElementById('btn-obtener-km');
 
+  // ===== Mapa (Leaflet) =====
+  let map = null;
+  let markerOrigin = null;
+  let markerDest = null;
+
+  function initMap() {
+    const mapEl = document.getElementById('map');
+    if (!mapEl || map) return;
+
+    map = L.map('map').setView([-33.45, -70.65], 11); // Santiago aproximado
+
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      maxZoom: 19,
+      attribution: '&copy; OpenStreetMap contributors'
+    }).addTo(map);
+  }
+
+  function updateMap(originCoords, destCoords) {
+    if (!map) return;
+
+    // Limpiar marcadores previos
+    if (markerOrigin) {
+      map.removeLayer(markerOrigin);
+      markerOrigin = null;
+    }
+    if (markerDest) {
+      map.removeLayer(markerDest);
+      markerDest = null;
+    }
+
+    const points = [];
+
+    if (originCoords && typeof originCoords.lat === 'number' && typeof originCoords.lon === 'number') {
+      markerOrigin = L.marker([originCoords.lat, originCoords.lon]).addTo(map);
+      markerOrigin.bindPopup('Base MovilSalud');
+      points.push([originCoords.lat, originCoords.lon]);
+    }
+
+    if (destCoords && typeof destCoords.lat === 'number' && typeof destCoords.lon === 'number') {
+      markerDest = L.marker([destCoords.lat, destCoords.lon]).addTo(map);
+      markerDest.bindPopup('Dirección del paciente');
+      points.push([destCoords.lat, destCoords.lon]);
+    }
+
+    if (points.length === 1) {
+      map.setView(points[0], 13);
+    } else if (points.length === 2) {
+      const bounds = L.latLngBounds(points[0], points[1]);
+      map.fitBounds(bounds, { padding: [30, 30] });
+    }
+  }
+
   // ===== Utilidades =====
   function formatCLP(n, showConsultar = false) {
     if (n === null || n === undefined || (showConsultar && n === 0)) return 'Consultar';
@@ -126,6 +178,14 @@
       kmEl.value = data.km.toFixed(1);
       const res = calcular();
       mostrarMensaje(`✓ Distancia: ${data.km.toFixed(1)} km · Total: ${formatCLP(res.total)}`, 'success');
+
+      // Actualizar mapa si hay coordenadas
+      const origin = data.origin || {};
+      const dest = data.destination || {};
+      updateMap(
+        { lat: origin.lat, lon: origin.lon },
+        { lat: dest.lat, lon: dest.lon }
+      );
     } catch (err) {
       console.error('Error distancia:', err);
       mostrarMensaje('No se pudo calcular la distancia. Ingrese el valor manualmente.', 'error');
@@ -247,6 +307,9 @@
   }
 
   // ===== Inicialización =====
+  if (typeof L !== 'undefined') {
+    initMap();
+  }
   cargarExamenes();
 
   // Setear fecha mínima como hoy
