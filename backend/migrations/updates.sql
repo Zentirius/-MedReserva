@@ -59,5 +59,43 @@ WHERE slug = 'radiografia_digital_movil';
 UPDATE examenes SET nombre = 'Holter de ECG o Llamado de Ritmo' 
 WHERE slug = 'holter_ecg_ritmo';
 
-UPDATE examenes SET nombre = 'Aerocámara Pre-escolar con Silbido Indicador' 
+UPDATE examenes SET nombre = 'Aerocámara Pre-escolar con Silbido Indicador de Flujo' 
 WHERE slug = 'aerocamara_preescolar';
+
+-- Actualizar precios reales de MovilSalud Setmore
+-- Neurología
+UPDATE examenes SET precio_base = 220000 WHERE slug = 'eeg_prolongado_1_2h';
+UPDATE examenes SET precio_base = 320000 WHERE slug = 'eeg_prolongado_3_4h';
+UPDATE examenes SET precio_base = 420000 WHERE slug = 'eeg_prolongado_5_6h';
+UPDATE examenes SET precio_base = 598000 WHERE slug = 'eeg_video_12h';
+UPDATE examenes SET precio_base = 220000 WHERE slug = 'eeg_privacion_sueno';
+UPDATE examenes SET precio_base = 450000 WHERE slug = 'polisomnografia_basal';
+UPDATE examenes SET precio_base = 498000 WHERE slug = 'polisomnografia_noche_dividida';
+
+-- Imagenología
+UPDATE examenes SET precio_base = 120000 WHERE slug = 'ecotomografia_doppler_color';
+UPDATE examenes SET precio_base = 85000 WHERE slug = 'ecotomografia_general';
+UPDATE examenes SET precio_base = 85000 WHERE slug = 'radiografia_digital_movil';
+UPDATE examenes SET precio_base = 85000 WHERE slug = 'radiologia_domicilio';
+
+-- Respiratorio
+UPDATE examenes SET precio_base = 56000 WHERE slug = 'espirometria_basal_broncodilatador';
+UPDATE examenes SET precio_base = 95000 WHERE slug = 'saturometria_continua_nocturna';
+UPDATE examenes SET precio_base = 220000 WHERE slug = 'poligrafia_respiratoria';
+
+-- Cardiología
+UPDATE examenes SET precio_base = 98500 WHERE slug = 'holter_ecg_ritmo';
+UPDATE examenes SET precio_base = 52000 WHERE slug = 'ecg_reposo';
+UPDATE examenes SET precio_base = 98500 WHERE slug = 'holter_ecg_24h';
+UPDATE examenes SET precio_base = 95000 WHERE slug = 'holter_presion_arterial';
+
+-- Sueño
+UPDATE examenes SET precio_base = 220000 WHERE slug = 'poligrafia_titulacion';
+UPDATE examenes SET precio_base = 220000 WHERE slug = 'poligrafia_diagnostico';
+
+-- Productos
+UPDATE examenes SET precio_base = 56000 WHERE slug = 'nebulizador_venta';
+UPDATE examenes SET precio_base = 48000 WHERE slug = 'aerocamara_lactante';
+UPDATE examenes SET precio_base = 48000 WHERE slug = 'aerocamara_escolar';
+UPDATE examenes SET precio_base = 48000 WHERE slug = 'aerocamara_preescolar';
+UPDATE examenes SET precio_base = 48000 WHERE slug = 'aerocamara_adultos';
