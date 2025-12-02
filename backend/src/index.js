@@ -34,7 +34,14 @@ app.use(express.json());
 app.use(cookieParser());
 
 app.get('/health', (req, res) => {
-  res.json({ status: 'ok', timestamp: new Date().toISOString(), version: '1.1.0' });
+  const orsKey = process.env.ORS_API_KEY;
+  res.json({
+    status: 'ok',
+    timestamp: new Date().toISOString(),
+    version: '1.1.0',
+    hasOrsKey: !!orsKey,
+    orsKeyLength: orsKey ? orsKey.length : 0
+  });
 });
 
 app.use('/api/examenes', examenesRouter);
