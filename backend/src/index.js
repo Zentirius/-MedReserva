@@ -58,27 +58,33 @@ async function runMigrations() {
       );
     `);
     
-    if (checkTable.rows[0].exists) {
-      console.log('Tablas ya existen, omitiendo migraciones.');
-      return;
+    if (!checkTable.rows[0].exists) {
+      console.log('Ejecutando migraciones iniciales...');
+      const schemaPath = path.join(__dirname, '..', 'migrations', 'schema.sql');
+      const sql = fs.readFileSync(schemaPath, 'utf8');
+      
+      // Ejecutar todo el SQL como una transacción
+      const client = await db.pool.connect();
+      try {
+        await client.query('BEGIN');
+        await client.query(sql);
+        await client.query('COMMIT');
+        console.log('Migraciones iniciales ejecutadas correctamente.');
+      } catch (err) {
+        await client.query('ROLLBACK');
+        throw err;
+      } finally {
+        client.release();
+      }
     }
 
-    console.log('Ejecutando migraciones...');
-    const schemaPath = path.join(__dirname, '..', 'migrations', 'schema.sql');
-    const sql = fs.readFileSync(schemaPath, 'utf8');
-    
-    // Ejecutar todo el SQL como una transacción
-    const client = await db.pool.connect();
-    try {
-      await client.query('BEGIN');
-      await client.query(sql);
-      await client.query('COMMIT');
-      console.log('Migraciones ejecutadas correctamente.');
-    } catch (err) {
-      await client.query('ROLLBACK');
-      throw err;
-    } finally {
-      client.release();
+    // Siempre ejecutar actualizaciones (viajes, ortografía, precios)
+    console.log('Aplicando actualizaciones...');
+    const updatesPath = path.join(__dirname, '..', 'migrations', 'updates.sql');
+    if (fs.existsSync(updatesPath)) {
+      const updatesSql = fs.readFileSync(updatesPath, 'utf8');
+      await db.pool.query(updatesSql);
+      console.log('Actualizaciones aplicadas correctamente.');
     }
   } catch (err) {
     console.error('Error ejecutando migraciones:', err.message);
