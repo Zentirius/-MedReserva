@@ -242,6 +242,20 @@
       return;
     }
 
+    // Validar nombre completo (al menos nombre y apellido)
+    const partesNombre = nombre.split(/\s+/).filter(Boolean);
+    if (partesNombre.length < 2) {
+      mostrarMensaje('Ingrese nombre y apellido del paciente', 'error');
+      return;
+    }
+
+    // Validar teléfono: solo dígitos y +, longitud 8-15 sin espacios
+    const telefonoLimpio = telefono.replace(/\s+/g, '');
+    if (!/^[0-9+]{8,15}$/.test(telefonoLimpio)) {
+      mostrarMensaje('Ingrese un teléfono válido (solo números y +, entre 8 y 15 dígitos)', 'error');
+      return;
+    }
+
     mostrarMensaje('Enviando reserva...', 'info');
 
     const resCalc = calcular();
@@ -305,6 +319,17 @@
 
   if (kmEl) {
     kmEl.addEventListener('input', calcular);
+  }
+
+  const telefonoEl = document.getElementById('telefono');
+  if (telefonoEl) {
+    telefonoEl.addEventListener('input', () => {
+      const original = telefonoEl.value;
+      const cleaned = original.replace(/[^0-9+\s]/g, '');
+      if (cleaned !== original) {
+        telefonoEl.value = cleaned;
+      }
+    });
   }
 
   if (btnCalcular) {
