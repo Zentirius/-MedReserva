@@ -76,7 +76,11 @@ async function getDistanceKm({ origin, destination }) {
   }
 
   const km = distanceMeters / 1000; // ORS entrega distancia en metros
-  return Math.round(km * 10) / 10;
+  return {
+    km: Math.round(km * 10) / 10,
+    origin: orig,
+    destination: dest
+  };
 }
 
 module.exports = { getDistanceKm };
