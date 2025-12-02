@@ -34,14 +34,13 @@ async function getDistanceKm({ origin, destination }) {
     geocodeAddress(apiKey, destination)
   ]);
 
-  const url = `${ORS_BASE_URL}/v2/directions/driving-car`;
+  // Usar endpoint GeoJSON directo
+  const url = `${ORS_BASE_URL}/v2/directions/driving-car/geojson`;
   const body = {
     coordinates: [
       [orig.lon, orig.lat],
       [dest.lon, dest.lat]
-    ],
-    geometry: true,
-    geometry_format: 'geojson'
+    ]
   };
 
   const resp = await fetch(url, {
@@ -59,19 +58,11 @@ async function getDistanceKm({ origin, destination }) {
 
   const data = await resp.json();
 
-  // ORS puede devolver formato con `routes` o con `features` (GeoJSON)
+  // Esperar formato GeoJSON: FeatureCollection con features[0]
   let distanceMeters = null;
   let geometryCoords = null;
 
-  if (Array.isArray(data.routes) && data.routes[0]) {
-    const r = data.routes[0];
-    if (r.summary && typeof r.summary.distance === 'number') {
-      distanceMeters = r.summary.distance;
-    }
-    if (r.geometry && Array.isArray(r.geometry.coordinates)) {
-      geometryCoords = r.geometry.coordinates;
-    }
-  } else if (Array.isArray(data.features) && data.features[0]) {
+  if (Array.isArray(data.features) && data.features[0]) {
     const f = data.features[0];
     if (f.properties && f.properties.summary && typeof f.properties.summary.distance === 'number') {
       distanceMeters = f.properties.summary.distance;
@@ -88,16 +79,13 @@ async function getDistanceKm({ origin, destination }) {
 
   const km = distanceMeters / 1000; // ORS entrega distancia en metros
 
-  let geometry = null;
-  if (Array.isArray(geometryCoords) && geometryCoords.length > 1) {
-    geometry = geometryCoords.map(([lon, lat]) => ({ lat, lon }));
-  }
-
   return {
     km: Math.round(km * 10) / 10,
     origin: orig,
     destination: dest,
-    geometry
+    geometry: Array.isArray(geometryCoords)
+      ? geometryCoords.map(([lon, lat]) => ({ lat, lon }))
+      : null
   };
 }
 
