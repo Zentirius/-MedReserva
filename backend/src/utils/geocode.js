@@ -60,7 +60,8 @@ async function getDistanceKm({ origin, destination }) {
   const summary = feature && feature.properties && feature.properties.summary;
 
   if (!summary || typeof summary.distance !== 'number') {
-    throw new Error('No se pudo obtener distancia válida desde ORS');
+    const preview = JSON.stringify(data).slice(0, 300);
+    throw new Error(`No se pudo obtener distancia válida desde ORS. Respuesta: ${preview}`);
   }
 
   const km = summary.distance / 1000; // ORS entrega distancia en metros
