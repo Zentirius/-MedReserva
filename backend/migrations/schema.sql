@@ -67,5 +67,14 @@ VALUES
   ('holter_ecg_ritmo', 'HOLTER DE ECG, O LLAMADO DE RITMO', NULL, 'Cardiología', 0, 1440, 1, 'domicilio', TRUE),
   ('ecg_reposo', 'Electrocardiograma de reposo', NULL, 'Cardiología', 0, 30, 1, 'domicilio', TRUE),
   ('holter_ecg_24h', 'Electrocardiografía continua 24 hrs. (Holter)', NULL, 'Cardiología', 0, 1440, 1, 'domicilio', TRUE),
-  ('holter_presion_arterial', 'Monitoreo ambulatorio de Presión Arterial (Holter de PA)', NULL, 'Cardiología', 0, 1440, 1, 'domicilio', TRUE)
+  ('holter_presion_arterial', 'Monitoreo ambulatorio de Presión Arterial (Holter de PA)', NULL, 'Cardiología', 0, 1440, 1, 'domicilio', TRUE),
+
+  ('poligrafia_titulacion', 'Poligrafía con titulación', NULL, 'Sueño', 0, 480, 1, 'domicilio', TRUE),
+  ('poligrafia_diagnostico', 'Poligrafía Respiratoria o de diagnóstico', NULL, 'Sueño', 0, 480, 1, 'domicilio', TRUE),
+
+  ('nebulizador_venta', 'Venta Nebulizadores (incluye despacho Santiago)', 'Recargo $3000 zonas fuera de Las Condes, Vitacura, Providencia, La Reina, Ñuñoa, Macul', 'Productos', 0, 0, 1, 'despacho', TRUE),
+  ('aerocamara_lactante', 'Aerocámara Lactante', NULL, 'Productos', 0, 0, 1, 'despacho', TRUE),
+  ('aerocamara_escolar', 'Aerocámara Escolar', NULL, 'Productos', 0, 0, 1, 'despacho', TRUE),
+  ('aerocamara_preescolar', 'Aerocámara Pre-escolar con silbido indicador', NULL, 'Productos', 0, 0, 1, 'despacho', TRUE),
+  ('aerocamara_adultos', 'Aerocámara Adolescentes y Adultos 175ml', NULL, 'Productos', 0, 0, 1, 'despacho', TRUE)
 ON CONFLICT (slug) DO NOTHING;

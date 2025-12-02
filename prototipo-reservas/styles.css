@@ -426,7 +426,30 @@ button {
 }
 
 .footer p {
-  margin: 0;
+  margin: 4px 0;
+}
+
+.footer a {
+  color: var(--primary);
+  text-decoration: none;
+}
+
+.footer a:hover {
+  text-decoration: underline;
+}
+
+/* ===== Contact Links ===== */
+.info-section.contact p {
+  margin: 8px 0;
+}
+
+.info-section.contact a {
+  color: var(--gray-700);
+  text-decoration: none;
+}
+
+.info-section.contact a:hover {
+  color: var(--primary);
 }
 
 /* ===== Responsive ===== */

@@ -18,8 +18,9 @@
   const btnObtenerKm = document.getElementById('btn-obtener-km');
 
   // ===== Utilidades =====
-  function formatCLP(n) {
-    if (n === null || n === undefined) return '$0';
+  function formatCLP(n, showConsultar = false) {
+    if (n === null || n === undefined || (showConsultar && n === 0)) return 'Consultar';
+    if (n === 0) return '$0';
     return n.toLocaleString('es-CL', { style: 'currency', currency: 'CLP' });
   }
 
@@ -56,9 +57,9 @@
     if (viajesEl) viajesEl.value = viajes;
 
     // Actualizar UI de resumen
-    if (precioBaseEl) precioBaseEl.textContent = formatCLP(precioBase);
+    if (precioBaseEl) precioBaseEl.textContent = precioBase === 0 ? 'Consultar' : formatCLP(precioBase);
     if (recargoEl) recargoEl.textContent = formatCLP(recargo);
-    if (totalEl) totalEl.textContent = formatCLP(total);
+    if (totalEl) totalEl.textContent = precioBase === 0 ? 'Consultar + recargo' : formatCLP(total);
 
     return { precioBase, recargo, total, km, viajes };
   }
@@ -76,7 +77,7 @@
       examenEl.innerHTML = '<option value="">Seleccione un examen...</option>' +
         lista.map(e => `
           <option value="${e.id}" data-precio="${e.precio_base}" data-viajes="${e.viajes_requeridos}">
-            ${e.nombre} - ${formatCLP(e.precio_base)}
+            ${e.nombre}${e.precio_base > 0 ? ' - ' + formatCLP(e.precio_base) : ''}
           </option>
         `).join('');
 
@@ -85,15 +86,18 @@
       console.warn('Usando exámenes de respaldo:', err.message);
       
       const fallback = [
-        { id: '1', nombre: 'Examen A', precio_base: 30000, viajes_requeridos: 1 },
-        { id: '2', nombre: 'Examen B', precio_base: 45000, viajes_requeridos: 2 },
-        { id: '3', nombre: 'Examen C', precio_base: 70000, viajes_requeridos: 4 }
+        { id: '1', nombre: 'EEG Prolongado 1-2 horas', precio_base: 0, viajes_requeridos: 1 },
+        { id: '2', nombre: 'Polisomnografía Basal', precio_base: 0, viajes_requeridos: 1 },
+        { id: '3', nombre: 'Holter ECG 24 hrs', precio_base: 0, viajes_requeridos: 1 },
+        { id: '4', nombre: 'Electrocardiograma de reposo', precio_base: 0, viajes_requeridos: 1 },
+        { id: '5', nombre: 'Ecotomografía General', precio_base: 0, viajes_requeridos: 1 },
+        { id: '6', nombre: 'Espirometría basal', precio_base: 0, viajes_requeridos: 1 }
       ];
 
       examenEl.innerHTML = '<option value="">Seleccione un examen...</option>' +
         fallback.map(e => `
           <option value="${e.id}" data-precio="${e.precio_base}" data-viajes="${e.viajes_requeridos}">
-            ${e.nombre} - ${formatCLP(e.precio_base)}
+            ${e.nombre}${e.precio_base > 0 ? ' - ' + formatCLP(e.precio_base) : ''}
           </option>
         `).join('');
 
