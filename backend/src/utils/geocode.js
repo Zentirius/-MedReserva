@@ -1,3 +1,4 @@
+const fetch = require('node-fetch');
 const ORS_BASE_URL = 'https://api.openrouteservice.org';
 
 async function geocodeAddress(apiKey, address) {
