@@ -56,15 +56,26 @@ async function getDistanceKm({ origin, destination }) {
   }
 
   const data = await resp.json();
-  const feature = data.features && data.features[0];
-  const summary = feature && feature.properties && feature.properties.summary;
 
-  if (!summary || typeof summary.distance !== 'number') {
+  // ORS puede devolver formato con `routes` o con `features` (GeoJSON)
+  let distanceMeters = null;
+
+  if (Array.isArray(data.routes) && data.routes[0] && data.routes[0].summary &&
+      typeof data.routes[0].summary.distance === 'number') {
+    distanceMeters = data.routes[0].summary.distance;
+  } else if (Array.isArray(data.features) && data.features[0] &&
+             data.features[0].properties &&
+             data.features[0].properties.summary &&
+             typeof data.features[0].properties.summary.distance === 'number') {
+    distanceMeters = data.features[0].properties.summary.distance;
+  }
+
+  if (typeof distanceMeters !== 'number') {
     const preview = JSON.stringify(data).slice(0, 300);
     throw new Error(`No se pudo obtener distancia válida desde ORS. Respuesta: ${preview}`);
   }
 
-  const km = summary.distance / 1000; // ORS entrega distancia en metros
+  const km = distanceMeters / 1000; // ORS entrega distancia en metros
   return Math.round(km * 10) / 10;
 }
 
