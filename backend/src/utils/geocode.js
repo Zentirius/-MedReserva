@@ -39,7 +39,9 @@ async function getDistanceKm({ origin, destination }) {
     coordinates: [
       [orig.lon, orig.lat],
       [dest.lon, dest.lat]
-    ]
+    ],
+    geometry: true,
+    geometry_format: 'geojson'
   };
 
   const resp = await fetch(url, {
@@ -59,15 +61,24 @@ async function getDistanceKm({ origin, destination }) {
 
   // ORS puede devolver formato con `routes` o con `features` (GeoJSON)
   let distanceMeters = null;
+  let geometryCoords = null;
 
-  if (Array.isArray(data.routes) && data.routes[0] && data.routes[0].summary &&
-      typeof data.routes[0].summary.distance === 'number') {
-    distanceMeters = data.routes[0].summary.distance;
-  } else if (Array.isArray(data.features) && data.features[0] &&
-             data.features[0].properties &&
-             data.features[0].properties.summary &&
-             typeof data.features[0].properties.summary.distance === 'number') {
-    distanceMeters = data.features[0].properties.summary.distance;
+  if (Array.isArray(data.routes) && data.routes[0]) {
+    const r = data.routes[0];
+    if (r.summary && typeof r.summary.distance === 'number') {
+      distanceMeters = r.summary.distance;
+    }
+    if (r.geometry && Array.isArray(r.geometry.coordinates)) {
+      geometryCoords = r.geometry.coordinates;
+    }
+  } else if (Array.isArray(data.features) && data.features[0]) {
+    const f = data.features[0];
+    if (f.properties && f.properties.summary && typeof f.properties.summary.distance === 'number') {
+      distanceMeters = f.properties.summary.distance;
+    }
+    if (f.geometry && Array.isArray(f.geometry.coordinates)) {
+      geometryCoords = f.geometry.coordinates;
+    }
   }
 
   if (typeof distanceMeters !== 'number') {
@@ -76,10 +87,17 @@ async function getDistanceKm({ origin, destination }) {
   }
 
   const km = distanceMeters / 1000; // ORS entrega distancia en metros
+
+  let geometry = null;
+  if (Array.isArray(geometryCoords) && geometryCoords.length > 1) {
+    geometry = geometryCoords.map(([lon, lat]) => ({ lat, lon }));
+  }
+
   return {
     km: Math.round(km * 10) / 10,
     origin: orig,
-    destination: dest
+    destination: dest,
+    geometry
   };
 }
 

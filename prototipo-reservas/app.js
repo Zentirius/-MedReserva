@@ -21,6 +21,7 @@
   let map = null;
   let markerOrigin = null;
   let markerDest = null;
+  let routeLine = null;
 
   function initMap() {
     const mapEl = document.getElementById('map');
@@ -34,7 +35,7 @@
     }).addTo(map);
   }
 
-  function updateMap(originCoords, destCoords) {
+  function updateMap(originCoords, destCoords, routeCoords) {
     if (!map) return;
 
     // Limpiar marcadores previos
@@ -45,6 +46,10 @@
     if (markerDest) {
       map.removeLayer(markerDest);
       markerDest = null;
+    }
+    if (routeLine) {
+      map.removeLayer(routeLine);
+      routeLine = null;
     }
 
     const points = [];
@@ -61,11 +66,20 @@
       points.push([destCoords.lat, destCoords.lon]);
     }
 
+    let routeBounds = null;
+    if (Array.isArray(routeCoords) && routeCoords.length > 1) {
+      const latlngs = routeCoords.map(p => [p.lat, p.lon]);
+      routeLine = L.polyline(latlngs, { color: '#0891b2', weight: 4, opacity: 0.85 }).addTo(map);
+      routeBounds = routeLine.getBounds();
+    }
+
     if (points.length === 1) {
       map.setView(points[0], 13);
     } else if (points.length === 2) {
       const bounds = L.latLngBounds(points[0], points[1]);
       map.fitBounds(bounds, { padding: [30, 30] });
+    } else if (routeBounds) {
+      map.fitBounds(routeBounds, { padding: [30, 30] });
     }
   }
 
@@ -182,9 +196,11 @@
       // Actualizar mapa si hay coordenadas
       const origin = data.origin || {};
       const dest = data.destination || {};
+      const geom = Array.isArray(data.geometry) ? data.geometry : [];
       updateMap(
         { lat: origin.lat, lon: origin.lon },
-        { lat: dest.lat, lon: dest.lon }
+        { lat: dest.lat, lon: dest.lon },
+        geom.map(p => ({ lat: p.lat, lon: p.lon }))
       );
     } catch (err) {
       console.error('Error distancia:', err);
