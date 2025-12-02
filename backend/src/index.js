@@ -50,12 +50,39 @@ async function runMigrations() {
       return;
     }
 
+    // Verificar si ya existen las tablas
+    const checkTable = await db.pool.query(`
+      SELECT EXISTS (
+        SELECT FROM information_schema.tables 
+        WHERE table_name = 'examenes'
+      );
+    `);
+    
+    if (checkTable.rows[0].exists) {
+      console.log('Tablas ya existen, omitiendo migraciones.');
+      return;
+    }
+
+    console.log('Ejecutando migraciones...');
     const schemaPath = path.join(__dirname, '..', 'migrations', 'schema.sql');
     const sql = fs.readFileSync(schemaPath, 'utf8');
-    await db.pool.query(sql);
-    console.log('Migraciones ejecutadas correctamente.');
+    
+    // Ejecutar todo el SQL como una transacción
+    const client = await db.pool.connect();
+    try {
+      await client.query('BEGIN');
+      await client.query(sql);
+      await client.query('COMMIT');
+      console.log('Migraciones ejecutadas correctamente.');
+    } catch (err) {
+      await client.query('ROLLBACK');
+      throw err;
+    } finally {
+      client.release();
+    }
   } catch (err) {
     console.error('Error ejecutando migraciones:', err.message);
+    // No hacer crash del servidor, solo loguear
   }
 }
 
