@@ -2,6 +2,9 @@ const express = require('express');
 const cors = require('cors');
 const cookieParser = require('cookie-parser');
 const dotenv = require('dotenv');
+const fs = require('fs');
+const path = require('path');
+const db = require('./db');
 
 dotenv.config();
 
@@ -40,8 +43,32 @@ app.use('/api/pagos', pagosRouter);
 app.use('/api/distancia', distanciaRouter);
 app.use('/api/auth', authRouter);
 
-const port = process.env.PORT || 3001;
+async function runMigrations() {
+  try {
+    if (!db.pool) {
+      console.warn('No hay pool de base de datos inicializado; se omiten migraciones.');
+      return;
+    }
 
-app.listen(port, () => {
-  console.log(`Servidor MedReserva escuchando en puerto ${port}`);
+    const schemaPath = path.join(__dirname, '..', 'migrations', 'schema.sql');
+    const sql = fs.readFileSync(schemaPath, 'utf8');
+    await db.pool.query(sql);
+    console.log('Migraciones ejecutadas correctamente.');
+  } catch (err) {
+    console.error('Error ejecutando migraciones:', err.message);
+  }
+}
+
+async function start() {
+  await runMigrations();
+
+  const port = process.env.PORT || 3001;
+  app.listen(port, () => {
+    console.log(`Servidor MedReserva escuchando en puerto ${port}`);
+  });
+}
+
+start().catch((err) => {
+  console.error('Error al iniciar el servidor:', err);
+  process.exit(1);
 });
